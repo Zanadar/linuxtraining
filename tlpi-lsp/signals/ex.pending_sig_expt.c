@@ -42,25 +42,62 @@
 
 /* FIXME: Implement handlers for SIGINT and SIGQUIT; the latter handler
    should display a message that SIGQUIT has been caught */
+static void sigIntHandler(int sig) {
+  printf("\nheya! handling %d\n", sig);
+  return;
+}
 
-int
-main(int argc, char *argv[])
+static void sigQuitHandler(int sig) {
+  printf("\nhandling SIGQUIT %d\n", sig);
+  return;
+}
+
+int main(int argc, char *argv[])
 {
 
     /* FIXME: Add variable declarations as required */
+    sigset_t blocking, prev, pending;
+    struct sigaction sa;
+    int err;
 
     /* FIXME: Block all signals except SIGINT */
+    err = sigfillset(&blocking);
+    if (err == -1)
+      errExit("sigfillset");
+    err = sigdelset(&blocking, SIGINT);
+    sigprocmask(SIG_BLOCK, &blocking, NULL);
 
     /* FIXME: Set up handlers for SIGINT and SIGQUIT */
+    sa.sa_flags = 0;
+    sa.sa_handler = sigIntHandler;
+    sigemptyset(&sa.sa_mask);
+    if (sigaction(SIGINT, &sa, NULL) == -1)
+      errExit("sigaction");
+
+    sa.sa_handler = sigQuitHandler;
+    if (sigaction(SIGQUIT, &sa, NULL) == -1)
+      errExit("sigaction");
 
     /* Block until SIGINT handler is invoked */
 
     printf("Pausing... send me some signals (PID=%ld)\n", (long) getpid());
     pause();
+    printf("UnPausing...");
+    err = sigpending(&pending);
+    if (err == -1)
+      errExit("sigpending");
 
+    printf("\nPending signals: \n")
+    for(int i = 1; i < NSIG; i++){
+      if (sigismember(&pending, i))
+        printf("\nsignal %d : %s\n", i, strsignal(i));
+    }
     /* FIXME: Retrieve and display set of pending signals */
 
     /* FIXME: Unblock SIGQUIT */
+
+    err = sigdelset(&blocking, SIGQUIT);
+    sigprocmask(SIG_SETMASK, &blocking, NULL);
 
     pause();
 

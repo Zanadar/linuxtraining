@@ -32,6 +32,7 @@ main(int argc, char *argv[])
     char *pathname;     /* Pathname supplied as command-line argument */
 #define BUF_SIZE 4096
     char buf[BUF_SIZE]; /* Buffer for use by read() and write() calls */
+    int dstfd;
 
     /* FIXME: Further variable declarations */
 
